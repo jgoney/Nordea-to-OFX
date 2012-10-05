@@ -1,4 +1,6 @@
-Nordea to OFX converter
+![GitHub Logo]
+
+# Nordea to OFX converter
 by Justin Goney
 -----------------------
 
