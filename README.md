@@ -1,4 +1,5 @@
-![GitHub Logo]
+![GitHub Logo](/images/logo.png)
+Format: ![Alt Text](url)
 
 # Nordea to OFX converter
 by Justin Goney
