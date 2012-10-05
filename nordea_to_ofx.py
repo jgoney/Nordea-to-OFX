@@ -1,0 +1,155 @@
+#!/usr/bin/env python
+
+"""
+Nordea to OFX: converts Nordea transaction lists (CSV) to OFX for use with
+financial management software.
+
+TODO: Allow support for other languages (Finnish and Swedish)
+TODO: Confirm that this works with files from all Nordea countries
+      (tested with Finnish version)
+"""
+
+import csv
+import os
+import sys
+import time
+
+
+def getTransType(trans, amt):
+    """
+    Converts a transaction description (e.g. "Deposit") to an OFX standardized transaction (e.g. "DEP").
+    """
+    if trans == "ATM withdr/Otto." or trans == "Debit cash withdrawal":
+        return "ATM"
+    elif trans == "Deposit":
+        return "DEP"
+    elif trans == "Deposit interest":
+        return "INT"
+    elif trans == "Direct debit":
+        return "DIRECTDEBIT"
+    elif trans == "e-invoice" or trans == "e-payment":
+        return "PAYMENT"
+    elif trans == "ePiggy savings transfer" or trans == "Own transfer":
+        return "XFER"
+    elif trans == "Service fee VAT 0%":
+        return "FEE"
+    else:
+        if amt[0] == '-':
+            return "DEBIT"
+        else:
+            return "CREDIT"
+
+
+def convertFile(f):
+    """
+    Creates new OFX file, then maps transactions from original CSV (f) to
+    OFX's version of XML.
+    """
+
+    # Open/create the .ofx file
+    try:
+        outFile = open(arg.split('.')[0] + ".ofx", "w")
+    except IOError:
+        print("Output file couldn't be created. Program will now exit")
+        sys.exit(2)
+
+    # Create csv reader and read in account number
+    csvReader = csv.reader(f, dialect=csv.excel_tab)
+    acctNumber = csvReader.next()[1]
+
+    # Get info from file name about dates (time is not given, so we add 12:00 as arbitrary time)
+    # TODO: parsing this with a REGEX would be less fragile
+    dateStart = f.name.split('_')[2] + "120000"
+    dateEnd = f.name.split('_')[3].split('.')[0] + "120000"
+
+    # Bypasses unneeded lines
+    while csvReader.line_num < 4:
+        csvReader.next()
+
+    # Creates string from file's time stamp
+    timeStamp = time.strftime(
+        "%Y%m%d%H%M%S", time.localtime((os.path.getctime(f.name))))
+    # Version with timezone: timeStamp = time.strftime("%Y%m%d%H%M%S" + "[+2:%Z]", time.localtime())
+
+    # Write header to file (includes timestamp)
+    outFile.write(
+        '''<?xml version="1.0" encoding="ANSI" standalone="no"?>
+<?OFX OFXHEADER="200" VERSION="200" SECURITY="NONE" OLDFILEUID="NONE" NEWFILEUID="NONE"?>
+<OFX>
+        <SIGNONMSGSRSV1>
+                <SONRS>
+                        <STATUS>
+                                <CODE>0</CODE>
+                                <SEVERITY>INFO</SEVERITY>
+                        </STATUS>
+                        <DTSERVER>''' + timeStamp + '''</DTSERVER>
+                        <LANGUAGE>ENG</LANGUAGE>
+                </SONRS>
+        </SIGNONMSGSRSV1>
+    <BANKMSGSRSV1>
+        <STMTTRNRS>
+            <TRNUID>0</TRNUID>
+            <STATUS>
+                <CODE>0</CODE>
+                <SEVERITY>INFO</SEVERITY>
+            </STATUS>
+            <STMTRS>
+                <CURDEF>EUR</CURDEF>
+                <BANKACCTFROM>
+                    <BANKID>Nordea</BANKID>
+                    <ACCTID>''' + acctNumber + '''</ACCTID>
+                    <ACCTTYPE>CHECKING</ACCTTYPE>
+                </BANKACCTFROM>
+                <BANKTRANLIST>
+                    <DTSTART>''' + dateStart + '''</DTSTART>
+                    <DTEND>''' + dateEnd + '''</DTEND>
+                    ''')
+
+    # Read lines from csvReader and add them as transactions
+    for line in csvReader:
+        if line != []:
+            # Unpacks the line into variables (including one null cell). Reformat the date.
+            entryDate, valueDate, paymentDate, amount, name, account, bic, transaction, refNum, refOrigNum, message, cardNum, receipt, nullCell = line
+            entryDate = entryDate.split('.')[2] + entryDate.split(
+                '.')[1] + entryDate.split('.')[0] + "120000"
+
+            # Quick and dirty trans type (needs a function table)
+            outFile.write(
+                '''<STMTTRN>
+                        <TRNTYPE>''' + getTransType(transaction, amount) + '''</TRNTYPE>
+                        <DTPOSTED>''' + entryDate + '''</DTPOSTED>
+                        <TRNAMT>''' + amount + '''</TRNAMT>
+                        <FITID>''' + refNum + '''</FITID>
+                        <NAME>''' + name + '''</NAME>
+                        <MEMO>''' + message + '''</MEMO>
+                    </STMTTRN>
+                    ''')
+
+    # Write OFX footer
+    outFile.write(
+        '''</BANKTRANLIST>
+                        </STMTRS>
+                </STMTTRNRS>
+        </BANKMSGSRSV1>
+</OFX>''')
+
+    outFile.close()
+
+if __name__ == '__main__':
+
+    # Check that the args are valid
+    if len(sys.argv) < 2:
+        print("Usage: %s [one or more file names]" % sys.argv[0])
+        sys.exit(1)
+
+    # Open the files and put the handles in a list
+    for arg in (sys.argv[1:]):
+        try:
+            file = open(arg, "rb")
+            print("Opening %s" % arg)
+            convertFile(file)
+        except IOError:
+            print("Error: file %s couldn't be opened" % arg)
+        else:
+            file.close()
+            print("%s is closed" % arg)
