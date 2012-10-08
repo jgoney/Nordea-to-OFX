@@ -14,10 +14,22 @@ import os
 import sys
 import time
 
+# Here you can define the currency used with your account (e.g. EUR, SEK)
+MY_CURRENCY = "EUR"
+
 
 def getTransType(trans, amt):
     """
-    Converts a transaction description (e.g. "Deposit") to an OFX standardized transaction (e.g. "DEP").
+    Converts a transaction description (e.g. "Deposit") to an OFX
+    standardized transaction (e.g. "DEP").
+    
+    @param trans: A textual description of the transaction (e.g. "Deposit")
+    @type trans: String
+    @param amt: The amount of a transaction, used to determine CREDIT or DEBIT.
+    @type amt: String
+    
+    @return: The standardized transaction type
+    @rtype: String
     """
     if trans == "ATM withdr/Otto." or trans == "Debit cash withdrawal":
         return "ATM"
@@ -44,6 +56,9 @@ def convertFile(f):
     """
     Creates new OFX file, then maps transactions from original CSV (f) to
     OFX's version of XML.
+    
+    @param f: A file handle (f) for the original CSV transactions list.
+    @type f: File
     """
 
     # Open/create the .ofx file
@@ -57,7 +72,9 @@ def convertFile(f):
     csvReader = csv.reader(f, dialect=csv.excel_tab)
     acctNumber = csvReader.next()[1]
 
-    # Get info from file name about dates (time is not given, so we add 12:00 as arbitrary time)
+    # Get info from file name about dates (time is not given, so we add 12:00
+    # as arbitrary time)
+    
     # TODO: parsing this with a REGEX would be less fragile
     dateStart = f.name.split('_')[2] + "120000"
     dateEnd = f.name.split('_')[3].split('.')[0] + "120000"
@@ -94,7 +111,7 @@ def convertFile(f):
                 <SEVERITY>INFO</SEVERITY>
             </STATUS>
             <STMTRS>
-                <CURDEF>EUR</CURDEF>
+                <CURDEF>''' + MY_CURRENCY + '''</CURDEF>
                 <BANKACCTFROM>
                     <BANKID>Nordea</BANKID>
                     <ACCTID>''' + acctNumber + '''</ACCTID>
@@ -108,8 +125,11 @@ def convertFile(f):
     # Read lines from csvReader and add them as transactions
     for line in csvReader:
         if line != []:
-            # Unpacks the line into variables (including one null cell). Reformat the date.
-            entryDate, valueDate, paymentDate, amount, name, account, bic, transaction, refNum, refOrigNum, message, cardNum, receipt, nullCell = line
+            # Unpacks the line into variables (including one null cell). Reformats the date.
+            entryDate, valueDate, paymentDate, amount, name, account, bic, \
+	    transaction, refNum, refOrigNum, message, cardNum, \
+	    receipt, nullCell = line
+	    
             entryDate = entryDate.split('.')[2] + entryDate.split(
                 '.')[1] + entryDate.split('.')[0] + "120000"
 
@@ -139,7 +159,7 @@ if __name__ == '__main__':
 
     # Check that the args are valid
     if len(sys.argv) < 2:
-        print("Usage: %s [one or more file names]" % sys.argv[0])
+        print("Error: no filenames were given.\nUsage: %s [one or more file names]" % sys.argv[0])
         sys.exit(1)
 
     # Open the files and put the handles in a list
