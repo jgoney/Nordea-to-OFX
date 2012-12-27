@@ -76,9 +76,15 @@ def convertFile(f):
     # as arbitrary time)
     
     # TODO: parsing this with a REGEX would be less fragile
-    dateStart = f.name.split('_')[2] + "120000"
-    dateEnd = f.name.split('_')[3].split('.')[0] + "120000"
-
+    try:
+	dateStart = f.name.split('_')[2] + "120000"
+	dateEnd = f.name.split('_')[3].split('.')[0] + "120000"
+    except IndexError:
+	print "Unable to automatically retrieve the start/end dates for your file."
+	print "Please enter the start/end dates in the following format: YYYYMMDD (8 digits)."
+	dateStart = raw_input("Please enter a start date: ") + "12000"
+	dateEnd = raw_input("Please enter an end date: ") + "12000"
+	
     # Bypasses unneeded lines
     while csvReader.line_num < 4:
         csvReader.next()
@@ -165,11 +171,11 @@ if __name__ == '__main__':
     # Open the files and put the handles in a list
     for arg in (sys.argv[1:]):
         try:
-            file = open(arg, "rb")
+            f_in = open(arg, "rb")
             print("Opening %s" % arg)
-            convertFile(file)
+            convertFile(f_in)
         except IOError:
             print("Error: file %s couldn't be opened" % arg)
         else:
-            file.close()
+            f_in.close()
             print("%s is closed" % arg)
