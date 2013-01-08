@@ -74,17 +74,17 @@ def convertFile(f):
 
     # Get info from file name about dates (time is not given, so we add 12:00
     # as arbitrary time)
-    
+
     # TODO: parsing this with a REGEX would be less fragile
     try:
-	dateStart = f.name.split('_')[2] + "120000"
-	dateEnd = f.name.split('_')[3].split('.')[0] + "120000"
+        dateStart = f.name.split('_')[2] + "120000"
+        dateEnd = f.name.split('_')[3].split('.')[0] + "120000"
     except IndexError:
-	print "Unable to automatically retrieve the start/end dates for your file."
-	print "Please enter the start/end dates in the following format: YYYYMMDD (8 digits)."
-	dateStart = raw_input("Please enter a start date: ") + "12000"
-	dateEnd = raw_input("Please enter an end date: ") + "12000"
-	
+        print "Unable to automatically retrieve the start/end dates for your file."
+        print "Please enter the start/end dates in the following format: YYYYMMDD (8 digits)."
+        dateStart = raw_input("Please enter a start date: ") + "12000"
+        dateEnd = raw_input("Please enter an end date: ") + "12000"
+
     # Bypasses unneeded lines
     while csvReader.line_num < 4:
         csvReader.next()
@@ -132,10 +132,10 @@ def convertFile(f):
     for line in csvReader:
         if line != []:
             # Unpacks the line into variables (including one null cell). Reformats the date.
-            entryDate, valueDate, paymentDate, amount, name, account, bic, \
-	    transaction, refNum, refOrigNum, message, cardNum, \
-	    receipt, nullCell = line
-	    
+            entryDate, valueDate, paymentDate, amount, name, account, bic,\
+            transaction, refNum, refOrigNum, message, cardNum,\
+            receipt, nullCell = line
+
             entryDate = entryDate.split('.')[2] + entryDate.split(
                 '.')[1] + entryDate.split('.')[0] + "120000"
 
@@ -162,7 +162,6 @@ def convertFile(f):
     outFile.close()
 
 if __name__ == '__main__':
-
     # Check that the args are valid
     if len(sys.argv) < 2:
         print("Error: no filenames were given.\nUsage: %s [one or more file names]" % sys.argv[0])
