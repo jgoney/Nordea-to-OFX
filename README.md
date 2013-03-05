@@ -9,5 +9,6 @@ CSV files as arguments, and nordea_to_ofx will create one OFX file in the
 current directory for each CSV file that it processes.
 
 Usage: 
-    nordea_to_ofx.py nordea_csv_1 [nordea_csv_2, ...]
-
+```bash
+nordea_to_ofx.py nordea_csv_1 [nordea_csv_2, ...]
+```
