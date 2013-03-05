@@ -1,4 +1,4 @@
-# Nordea to OFX converter
+l# Nordea to OFX converter
 by Justin Goney
 -----------------------
 
@@ -10,3 +10,4 @@ current directory for each CSV file that it processes.
 
 Usage: nordea_to_ofx.py [some_nordea_csv]
 
+Steak
