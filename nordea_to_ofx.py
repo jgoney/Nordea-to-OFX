@@ -31,19 +31,19 @@ def getTransType(trans, amt):
     @return: The standardized transaction type
     @rtype: String
     """
-    if trans == "ATM withdr/Otto." or trans == "Debit cash withdrawal":
+    if trans == "ATM withdr/Otto." or trans == "Debit cash withdrawal" or trans == "ATMotto/Otto.":
         return "ATM"
-    elif trans == "Deposit":
+    elif trans == "Deposit" or trans == "Pano":
         return "DEP"
-    elif trans == "Deposit interest":
+    elif trans == "Deposit interest" or trans == "Talletuskorko":
         return "INT"
-    elif trans == "Direct debit":
+    elif trans == "Direct debit" or trans == "Suoraveloitus":
         return "DIRECTDEBIT"
-    elif trans == "e-invoice" or trans == "e-payment":
+    elif trans == "e-invoice" or trans == "e-payment" or trans == "e-lasku" or trans == "e-maksu":
         return "PAYMENT"
-    elif trans == "ePiggy savings transfer" or trans == "Own transfer":
+    elif trans == "ePiggy savings transfer" or trans == "Own transfer" or trans == "Oma siirto":
         return "XFER"
-    elif trans == "Service fee VAT 0%":
+    elif trans == "Service fee VAT 0%" or trans == "Palvelumaksu ALV 0%":
         return "FEE"
     else:
         if amt[0] == '-':
