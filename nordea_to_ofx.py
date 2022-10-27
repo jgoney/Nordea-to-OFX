@@ -70,7 +70,7 @@ def convertFile(f):
 
     # Create csv reader and read in account number
     csvReader = csv.reader(f, dialect=csv.excel_tab)
-    acctNumber = csvReader.next()[1]
+    acctNumber = next(csvReader)[1]
 
     # Get info from file name about dates (time is not given, so we add 12:00
     # as arbitrary time)
@@ -80,14 +80,14 @@ def convertFile(f):
         dateStart = f.name.split('_')[2] + "120000"
         dateEnd = f.name.split('_')[3].split('.')[0] + "120000"
     except IndexError:
-        print "Unable to automatically retrieve the start/end dates for your file."
-        print "Please enter the start/end dates in the following format: YYYYMMDD (8 digits)."
-        dateStart = raw_input("Please enter a start date: ") + "12000"
-        dateEnd = raw_input("Please enter an end date: ") + "12000"
+        print("Unable to automatically retrieve the start/end dates for your file.")
+        print("Please enter the start/end dates in the following format: YYYYMMDD (8 digits).")
+        dateStart = input("Please enter a start date: ") + "12000"
+        dateEnd = input("Please enter an end date: ") + "12000"
 
     # Bypasses unneeded lines
     while csvReader.line_num < 4:
-        csvReader.next()
+        next(csvReader)
 
     # Creates string from file's time stamp
     timeStamp = time.strftime(
@@ -96,8 +96,7 @@ def convertFile(f):
 
     # Write header to file (includes timestamp)
     outFile.write(
-        '''<?xml version="1.0" encoding="ANSI" standalone="no"?>
-<?OFX OFXHEADER="200" VERSION="200" SECURITY="NONE" OLDFILEUID="NONE" NEWFILEUID="NONE"?>
+        '''<?OFX OFXHEADER="200" VERSION="200" SECURITY="NONE" OLDFILEUID="NONE" NEWFILEUID="NONE"?>
 <OFX>
         <SIGNONMSGSRSV1>
                 <SONRS>
@@ -164,17 +163,17 @@ def convertFile(f):
 if __name__ == '__main__':
     # Check that the args are valid
     if len(sys.argv) < 2:
-        print("Error: no filenames were given.\nUsage: %s [one or more file names]" % sys.argv[0])
+        print(("Error: no filenames were given.\nUsage: %s [one or more file names]" % sys.argv[0]))
         sys.exit(1)
 
     # Open the files and put the handles in a list
     for arg in (sys.argv[1:]):
         try:
-            f_in = open(arg, "rb")
-            print("Opening %s" % arg)
+            f_in = open(arg, "r")
+            print(("Opening %s" % arg))
             convertFile(f_in)
         except IOError:
-            print("Error: file %s couldn't be opened" % arg)
+            print(("Error: file %s couldn't be opened" % arg))
         else:
             f_in.close()
-            print("%s is closed" % arg)
+            print(("%s is closed" % arg))
